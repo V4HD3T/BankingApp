@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Finansman Hesaplama</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script>
+        function validateForm() {
+            var anapara = document.getElementById("anapara").value;
+            var vade = document.getElementById("vade").value;
+
+            if (anapara < 0 || vade < 0) {
+                alert("Finansman Tutarı ve Vade negatif olamaz.");
+                return false;
+            }
+            return true;
+        }
+
+        function formatNumber(input) {
+            var num = input.value.replace(/\./g, '').replace(',', '.');
+            if (!isNaN(num)) {
+                var formatted = Number(num).toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                input.value = formatted;
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Finansman Hesaplama</h1>
+        <form method="post" onsubmit="return validateForm()">
+            <label for="finansman_turu">Finansman Türü:</label>
+            <select name="finansman_turu" id="finansman_turu">
+                {% for tur, detaylar in finansman_turleri.items() %}
+                    <option value="{{ tur }}" {% if secili_tur_no == tur %}selected{% endif %}>{{ detaylar['isim'] }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <label for="anapara">Finansman Tutarı (TL):</label>
+            <input type="text" id="anapara" name="anapara" oninput="formatNumber(this)" required>
+            <br>
+            <label for="vade">Vade (Ay):</label>
+            <input type="number" id="vade" name="vade" min="0" step="1" required>
+            <br>
+            <button type="submit">Hesapla</button>
+        </form>
+
+        {% if hata_mesaji %}
+            <div class="error-message">{{ hata_mesaji }}</div>
+        {% endif %}
+
+        {% if sonuc %}
+            <div class="results">
+                <h2>Sonuçlar</h2>
+                <p>Finansman Türü: {{ secili_tur['isim'] }}</p>
+                <p>Aylık Kâr Oranı: {{ secili_tur['kar_orani'] }}%</p>
+                <p>Finansman Tutarı: {{ anapara }} TL</p>
+                <p>Vade: {{ aylik_sayisi }} Ay</p>
+                <p>Aylık Ödeme: {{ aylik_odeme }} TL</p>
+                <p>Toplam Ödenecek Tutar: {{ toplam_odeme }} TL</p>
+                {% if uyarı %}
+                    <div class="warning-box">{{ uyarı }}</div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
